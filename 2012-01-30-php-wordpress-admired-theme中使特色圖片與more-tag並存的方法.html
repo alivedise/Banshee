@@ -1,0 +1,57 @@
+---
+layout: post
+title: ! '[php] wordpress - admired theme中使特色圖片與more tag並存的方法'
+categories: []
+tags:
+- php
+- wordpress
+published: true
+comments: true
+---
+<p>其實我不會php！<br />
+在玩特色圖片功能的時候，發現當打開admired themes選項的enable thumbnail時，<br />
+主頁會看不到more...(就是continue reading)的連結，<br />
+咕狗了一下發現因為佈景主題的不同，會影響more tag的出現與否。<br />
+以下是admired這個theme的解法：</p>
+
+<p><!--more--></p>
+
+<p>主題編輯器-&gt;找到loop.php
+<pre class="brush:php">&lt;?php if ( is_search() ) : // Only display Excerpts for Search ?&gt;
+		&lt;div class="entry-summary"&gt;
+			&lt;?php the_excerpt(); ?&gt;
+		&lt;/div&gt;&lt;!-- .entry-summary --&gt;
+		&lt;?php elseif ( isset ($options['admired_thumbnail_excerpt']) &amp;&amp;  ($options['admired_thumbnail_excerpt'] !="") ) : { ?&gt;
+		&lt;div class="entry-summary"&gt;
+			&lt;?php if(has_post_thumbnail()) {
+			echo '&lt;span class="thumbnail"&gt;&lt;a href="'; the_permalink(); echo '"&gt;';the_post_thumbnail(array(100,100)); echo '&lt;/a&gt;&lt;/span&gt;';
+			}
+			the_excerpt(); } ?&gt;
+		&lt;/div&gt;&lt;!-- .entry-summary --&gt;
+		&lt;?php else : ?&gt;
+		&lt;div class="entry-content"&gt;
+			&lt;?php the_content( __( 'Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;', 'admired' ) ); ?&gt;
+			&lt;?php wp_link_pages( array( 'before' =&gt; '&lt;div class="page-link"&gt;&lt;span&gt;' . __( 'Pages:', 'admired' ) . '&lt;/span&gt;', 'after' =&gt; '&lt;/div&gt;' ) ); ?&gt;
+		&lt;/div&gt;&lt;!-- .entry-content --&gt;
+		&lt;?php endif; ?&gt;</pre>
+發現他把thumbnail跟more tag的content function用if else給切八斷了，理由不明，<br />
+只好幫他改掉。
+<pre class="brush:php; highlight: [11]">&lt;?php if ( is_search() ) : // Only display Excerpts for Search ?&gt;
+		&lt;div class="entry-summary"&gt;
+			&lt;?php the_excerpt(); ?&gt;
+		&lt;/div&gt;&lt;!-- .entry-summary --&gt;
+		&lt;?php elseif ( isset ($options['admired_thumbnail_excerpt']) &amp;&amp;  ($options['admired_thumbnail_excerpt'] !="") ) : { ?&gt;
+		&lt;div class="entry-summary"&gt;
+			&lt;?php if(has_post_thumbnail()) {
+			echo '&lt;span class="thumbnail"&gt;&lt;a href="'; the_permalink(); echo '"&gt;';the_post_thumbnail(array(100,100)); echo '&lt;/a&gt;&lt;/span&gt;';
+			}
+			} ?&gt;
+			&lt;?php the_content( __( 'Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;', 'admired' ) ); ?&gt;
+			&lt;?php wp_link_pages( array( 'before' =&gt; '&lt;div class="page-link"&gt;&lt;span&gt;' . __( 'Pages:', 'admired' ) . '&lt;/span&gt;', 'after' =&gt; '&lt;/div&gt;' ) ); ?&gt;
+		&lt;/div&gt;&lt;!-- .entry-summary --&gt;
+		&lt;?php else : ?&gt;
+		&lt;div class="entry-content"&gt;
+			&lt;?php the_content( __( 'Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;', 'admired' ) ); ?&gt;
+			&lt;?php wp_link_pages( array( 'before' =&gt; '&lt;div class="page-link"&gt;&lt;span&gt;' . __( 'Pages:', 'admired' ) . '&lt;/span&gt;', 'after' =&gt; '&lt;/div&gt;' ) ); ?&gt;
+		&lt;/div&gt;&lt;!-- .entry-content --&gt;
+		&lt;?php endif; ?&gt;</pre></p>

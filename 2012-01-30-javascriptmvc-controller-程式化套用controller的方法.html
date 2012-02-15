@@ -1,0 +1,33 @@
+---
+layout: post
+title: ! '[jQuery] 程式化建立controller的方法'
+categories: []
+tags:
+- javascriptMVC
+- jQuery
+published: true
+comments: true
+---
+<p>遇到一個作類似module loader的狀況，<br />
+有三種module a, b, c 分別以三個controller構成：controller_a, controller_b, controller_c<br />
+原本分開初始化一個controller很簡單，就是醬：</p>
+
+<p><!--more--></p>
+
+<br />
+``` js
+println 1+2+3
+
+$(element).controller_a({option: value});<br />
+$(element).controller_b({option: value});<br />
+$(element).controller_c({option: value});<br />
+```
+<p>現在想用動態方式決定作某個controller的初始化動作，方法如下：</p>
+
+``` js
+<br />
+var controll = 'contoller_a';<br />
+$(element)[controll]({option: value});<br />
+```
+<blockquote>reference: <a href="http://forum.javascriptmvc.com/topic/programmatically-initial-a-controller#32525000000807021">http://forum.javascriptmvc.com/topic/programmatically-initial-a-controller#32525000000807021</a></blockquote>
+註記：測試過後發現這個方法也適用於jQuery原生的controller，並非javascriptMVC專屬。</p>
