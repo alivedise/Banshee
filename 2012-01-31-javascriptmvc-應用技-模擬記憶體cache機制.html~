@@ -1,0 +1,39 @@
+---
+layout: post
+title: "[javascriptMVC] 應用技 - 模擬記憶體Cache機制"
+categories: javascriptmvc
+comments: true
+date: 2012-01-31 11:46
+---
+javascriptMVC大精神之一：
+
+跟伺服器溝通要透過$.Model包裹起來的各類Object。
+不需要跟伺服器作資料交換基本上就不需$.Model。
+那麼，當有個需求是，要拿$.Model.findAll()的結果在兩個以上的$.Controller之間使用時，該怎麼辦？
+直接對$.Model作Update會觸發server-side operation，鐵定行不通。
+
+想了幾個作法：
+#### 對$.Model作包裹：寫一個BaseModel繼承$.Model後，重載$.Model.prototype的update，使用update可以辨認這次修改是要暫時cache住（即cache writeback）或者要將資料直接write-through回伺服器。方法大致是，以class scope定義: Writethrough=true，以prototype定義_dirty=false修改prototype.update為</li></ol>
+
+``` js
+update: function(){
+    if(this.constructor.writethrough)
+        this._super.update();
+    else
+    {
+        this._dirty = true;
+        steal.dev.log('Write back cached! This instance is dirty now.');
+    }
+}
+```
+
+#### 利用javascriptMVC的$.fixture保護server
+<code>$.fixture</code>可以模擬ajax call，
+有兩個有用的函式/屬性：
+
+	$.fixture.-restUpdate(settings);
+	$.fixture.on = true;
+
+利用$.fixture.on的開關來決定這次要寫穿還是要弄髒。
+
+

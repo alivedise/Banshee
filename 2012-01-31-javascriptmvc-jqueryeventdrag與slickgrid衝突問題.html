@@ -1,0 +1,107 @@
+---
+layout: post
+title: "[javascriptMVC] jquery/event/drag與SlickGrid衝突問題"
+date: 2012-01-31 11:46
+categories: javascriptmvc
+comments: true
+---
+### story
+SlickGrid內部需要用到jquery.event.drag
+
+``` js
+	// make sure required JavaScript modules are loaded
+	if (typeof jQuery === "undefined") {
+	    throw "SlickGrid requires jquery module to be loaded";
+	}
+	if (!jQuery.fn.drag) {
+	    throw "SlickGrid requires jquery.event.drag module to be loaded";
+	}
+	if (typeof Slick === "undefined") {
+	    throw "slick.core.js not loaded";
+	}
+```
+
+此處的jquery.event.drag是來自[jquery.event.drag](http://code.google.com/p/threedubmedia/)的實做。
+注意drag並不是瀏覽器會有的原生事件，所以會有一些不同的lib去實做這一塊。
+
+以上本來沒有什麼問題，
+但是跟javascriptMVC的另一個drag實做：[jquery/event/drag](https://raw.github.com/alivedise/jquerymx/master/event/drag/drag.js)並用時就會產生問題。
+原因就是上面所說得實做方式有異，兩者使用上也大不相同，
+只是同樣掛上drag這個名字。
+
+基於維持javascriptMVC本身的完整性的理由，決定更改jquery.event.drag這個lib。
+過程中學到了$.event.special的客制事件製作方式，基本樣板如下：
+``` js
+$.event.special.UPTOYOU = {
+    setup: function() {
+        var elem = this;
+    },
+    teardown: fuction() {
+        var elem = this;
+    }
+};
+```
+
+### 回到jQuery.event.drag的實做
+最簡單的避免命名碰撞的方式為，把drag改名為_drag，
+另外接這個事件的人也要配合更改。
+所以實際上SlickGrid跟jQuery.event.drag都要更動。
+
+#### SlickGrid內部用到drag的地方
+``` js
+ 262             $canvas
+ 263                 .bind("keydown.slickgrid", handleKeyDown)
+ 264                 .bind("click.slickgrid", handleClick)
+ 265                 .bind("dblclick.slickgrid", handleDblClick)
+ 266                 .bind("contextmenu.slickgrid", handleContextMenu)
+ 267                 .bind("_draginit", handleDragInit)                                                                                                                      
+ 268                 .bind("_dragstart", handleDragStart)
+ 269                 .bind("_drag", handleDrag)
+ 270                 .bind("_dragend", handleDragEnd);
+
+ 536                 $("div class='slick-resizable-handle'")
+ 537                     .appendTo(e)
+ 538                     .bind("_dragstart", function(e,dd) {                            
+
+ 588                     .bind("_drag", function(e,dd) { 
+ 589                         var actualMinWidth, d = Math.min(maxPageX, Math.max(minPageX, e.pageX)) - pageX, x, ci;
+
+ 662                     .bind("xdragend", function(e,dd) {
+ 663                         var newWidth;
+ 664                         $(this).parent().removeClass("slick-header-column-active");
+
+ 776             $canvas.unbind("_draginit _dragstart _dragend _drag");                                                                                                      
+ 777             $container.empty().removeClass(uid);
+```
+#### jquery.event.drag
+到目前為止只是簡單的代換，比較困難的是在jquery.event.drag內部要更動drag這個名字。
+最後找到最小修改的方式：
+``` js
+ 13 $.fn._drag = function( str, arg, opts ){
+ 14     // figure out the event type
+ 15     var type = typeof str == "string" ? str : "",
+ 16     // figure out the event handler...
+ 17     fn = $.isFunction( str ) ? str : $.isFunction( arg ) ? arg : null;
+ 18     // fix the event type
+ 19     if ( type.indexOf("drag") !== 0 )
+ 20         type = "drag"+ type;
+ 21     // were options passed
+ 22     opts = ( str == fn ? arg : opts ) || {};
+ 23     // trigger or bind event handler
+ 24     return fn ? this.bind( type, opts, fn ) : this.trigger( type );
+ 25 };
+ 26 
+ 27 // local refs (increase compression)
+ 28 var $event = $.event,
+ 29 $special = $event.special,
+ 30 // configure the drag special event 
+ 31 drag = $special._drag = {    
+
+ 279                 event.type = event.type.replace('drag', '_drag');
+//在丟給event handler之前把type偷天換日
+ 280                 result = subject ? $event.handle.call( subject, event, callback ) : null;
+
+ 388 $special.xdraginit = $special.xdragstart = $special.xdragend = drag;
+```
+- [github修改過得slick.grid.js](https://github.com/alivedise/SlickGrid/blob/master/slick.grid.js)
+- [github修改過得jquery.event.drag.js](https://github.com/alivedise/jQuery/blob/master/jquery.event.drag.js">https://github.com/alivedise/jQuery/blob/master/jquery.event.drag.js)

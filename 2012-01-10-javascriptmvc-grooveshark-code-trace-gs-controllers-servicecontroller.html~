@@ -1,0 +1,1625 @@
+---
+layout: post
+title: ! '[javascriptMVC] Grooveshark Code Trace - GS.Controllers.ServiceController()'
+categories: []
+tags:
+- grooveshark
+- javascriptMVC
+- jQuery
+published: true
+comments: true
+---
+<p>[js]<br />
+(function() {<br />
+	function a() {<br />
+		this.requests = [];<br />
+		this.pendingRequest = null<br />
+	}</p>
+
+<p>	function b(q) {<br />
+		var r = [].slice.call(arguments, 1),<br />
+			s = (new Date).valueOf(),<br />
+			u = new this;<br />
+		this.apply(u, r);<br />
+		r = 6E5;<br />
+		if ( q ) {<br />
+			if ( typeof q == &quot;number&quot; ) r = q;<br />
+			var C = u.getCacheKey(),<br />
+				F = u.pendingCallCache[C];<br />
+			if ( _.defined(F) &amp;&amp; (!F.isResolved() || s - F.lastResolution &lt; r) ) u = F;<br />
+			else u.pendingCallCache[C] = u<br />
+		}<br />
+		return u<br />
+	}</p>
+
+<p>	function c(q, r, s, u, C) {<br />
+		function F() {<br />
+			J.isPending = false;<br />
+			J.lastResolution = (new Date).valueOf()<br />
+		}<br />
+		this.method = _.orEqual(q, &quot;&quot;);<br />
+		this.parameters = _.orEqual(r, {});<br />
+		this.options =<br />
+		_.orEqual(s, {});<br />
+		this.useHTTPS = _.orEqual(u, false);<br />
+		this.useSWF = _.orEqual(C, false);<br />
+		this.overrideHeaders = {};<br />
+		this.type = &quot;normal&quot;;<br />
+		this.isPending = this.failedAuth = false;<br />
+		this.numRetries = 0;<br />
+		this.lastFault = null;<br />
+		this.lastResolution = 0;<br />
+		this.successFilters = [];<br />
+		this.faultFilters = [];<br />
+		this._dfd = $.Deferred();<br />
+		var J = this;<br />
+		this.promise().then(F, F)<br />
+	}</p>
+
+<p>	function g(q, r, s) {<br />
+		c.call(this, q, r);<br />
+		this.httpMethod = _.orEqual(s, &quot;POST&quot;);<br />
+		this.type = &quot;facebook&quot;<br />
+	}</p>
+
+<p>	function h(q) {<br />
+		c.call(this, null, q);<br />
+		this.type = &quot;lastfm&quot;<br />
+	}</p>
+
+<p>	function k() {<br />
+		var q = String(Math.floor(Math.random() * 1E4));<br />
+		return !GS.service.outgoingSWFCalls[q] ? q : k()<br />
+	}</p>
+
+<p>	function m(q, r) {<br />
+		var s;<br />
+		if ( $.isFunction(GS.service.swfProxy) ) {<br />
+			s = k();<br />
+			GS.service.outgoingSWFCalls[s] = q;<br />
+			GS.service.swfProxy(q.getSWFable(), r, s)<br />
+		} else {<br />
+			q.isPending = false;<br />
+			GS.service.callsPendingSWF.push(q)<br />
+		}<br />
+	}</p>
+
+<p>	function p() {<br />
+		for ( var q = &quot;&quot;, r = 0; r &lt; 6; r++ )<br />
+		q += Math.floor(Math.random() * 16).toString(16);<br />
+		return q != GS.service.lastRandomizer ? q : p()<br />
+	}</p>
+
+<p>	function n(q) {<br />
+		q = _.orEqual(q, {});<br />
+		var r = {<br />
+			client: GS.service.client,<br />
+			clientRevision: GS.service.clientRevision,<br />
+			privacy: GS.service.privacy,<br />
+			country: GS.service.country,<br />
+			uuid: GS.service.uuID<br />
+		};<br />
+		if ( GS.service.sessionID ) r.session = GS.service.sessionID;<br />
+		return $.extend(r, q)<br />
+	}</p>
+
+<p>	function o(q, r) {<br />
+		_.defined(q) || (q = {<br />
+			fault: {<br />
+				message: &quot;Empty Result&quot;,<br />
+				code: GS.service.faultCodes.EMPTY_RESULT<br />
+			}<br />
+		});<br />
+		if ( q.header ) {<br />
+			var s = q.header,<br />
+				u = s.session;<br />
+			if ( u &amp;&amp; u != GS.service.sessionID ) {<br />
+				GS.service.sessionID = u;<br />
+				GS.service.tokenPending = false;<br />
+				x()<br />
+			}<br />
+			if ( s.expiredClient ) {<br />
+				GS.service.clientExpired = true;<br />
+				GS.player &amp;&amp; GS.player.expireSWFService();<br />
+				t()<br />
+			}<br />
+			s = s.secondsUntilDowntime;<br />
+			if ( s &lt; 0 ) _.wait(5E3).then(E);<br />
+			else if ( s &gt; 0 ) {<br />
+				s = Math.floor(s / 60);<br />
+				u = (new Date).valueOf();<br />
+				if ( s &lt;= 60 ) if ( GS.service.lastDowntimeNotification == 0 || s &gt; 30 &amp;&amp; u - GS.service.lastDowntimeNotification &gt; 36E5 || s &lt;= 30 &amp;&amp; s &gt; 15 &amp;&amp; u - GS.service.lastDowntimeNotification &gt; 18E5 || s &lt;= 15 &amp;&amp; s &gt; 10 &amp;&amp; u - GS.service.lastDowntimeNotification &gt; 9E5 || s &lt;= 10 &amp;&amp; s &gt; 5 &amp;&amp; u - GS.service.lastDowntimeNotification &gt; 6E5 || s &lt;= 5 &amp;&amp; u - GS.service.lastDowntimeNotification &gt; 3E5 ) {<br />
+					GS.service.lastDowntimeNotification = u;<br />
+					s = new GS.Models.DataString($.localize.getString(&quot;NOTIFICATION_MAINTENANCE_WARNING&quot;), {<br />
+						min: s<br />
+					});<br />
+					$.publish(&quot;gs.notification&quot;, {<br />
+						type: &quot;info&quot;,<br />
+						message: s<br />
+					})<br />
+				}<br />
+			}<br />
+		}<br />
+		q.fault ? w(q.fault, r) : r.resolve(_.orEqual(q.result, q))<br />
+	}</p>
+
+<p>	function t() {<br />
+		GS.getLightbox().open({<br />
+			type: &quot;invalidClient&quot;,<br />
+			notCloseable: true,<br />
+			view: {<br />
+				header: &quot;POPUP_INVALID_CLIENT_TITLE&quot;,<br />
+				message: &quot;POPUP_INVALID_CLIENT_MSG&quot;,<br />
+				buttonsRight: [{<br />
+					label: &quot;POPUP_INVALID_CLIENT_SUBMIT&quot;,<br />
+					className: &quot;submit&quot;<br />
+				}]<br />
+			},<br />
+			callbacks: {<br />
+				&quot;.submit&quot;: function( q ) {<br />
+					q.stopImmediatePropagation();<br />
+					window.location.reload(true)<br />
+				}<br />
+			}<br />
+		})<br />
+	}</p>
+
+<p>	function w(q, r) {<br />
+		if ( q &amp;&amp; _.defined(q.code) ) {<br />
+			console.log(&quot;HANDLE FAULT CODE&quot;, q.code, r.method);<br />
+			if ( q.code == GS.service.faultCodes.INVALID_TOKEN ) {<br />
+				var s = (new Date).valueOf();<br />
+				if ((!GS.service.lastTokenFailed || s - GS.service.lastTokenFailed &gt;= 3E5) &amp;&amp; r.numRetries === 0 ) {<br />
+					GS.service.lastTokenFailed = false;<br />
+					r.isPending = false;<br />
+					r.numRetries++;<br />
+					GS.service.callsPendingToken.push(r);<br />
+					x();<br />
+					return<br />
+				} else $.publish(&quot;gs.notification&quot;, {<br />
+					type: &quot;error&quot;,<br />
+					message: $.localize.getString(&quot;SERVICE_ERROR_COMMUNICATING&quot;),<br />
+					uniqueInstance: &quot;errorCommunicating&quot;<br />
+				})<br />
+			} else if ( q.code == GS.service.faultCodes.HTTP_TIMEOUT || q.code == GS.service.faultCodes.EMPTY_RESULT ) {<br />
+				r.lastFault =<br />
+				q;<br />
+				r.retry(100 + r.numRetries * 100);<br />
+				return<br />
+			} else if ( q.code == GS.service.faultCodes.MAINTENANCE ) _.wait(5E3).then(E);<br />
+			else if ( q.code == GS.service.faultCodes.INVALID_CLIENT ) t();<br />
+			else if ( q.code == GS.service.faultCodes.INVALID_SESSION ) GS.getLightbox().open({<br />
+				type: &quot;sessionBad&quot;,<br />
+				notCloseable: true,<br />
+				view: {<br />
+					header: &quot;POPUP_SESSION_BAD_TITLE&quot;,<br />
+					message: &quot;POPUP_SESSION_BAD_MSG&quot;,<br />
+					buttonsLeft: [{<br />
+						label: &quot;POPUP_REFRESH_GROOVESHARK&quot;,<br />
+						className: &quot;submit&quot;<br />
+					}]<br />
+				},<br />
+				callbacks: {<br />
+					&quot;.submit&quot;: function( u ) {<br />
+						u.stopImmediatePropagation();<br />
+						window.location.reload(true)<br />
+					}<br />
+				}<br />
+			});<br />
+			else if ( gsConfig.runMode == &quot;dev&quot; &amp;&amp; q.code == GS.service.faultCodes.HTTP_ERROR &amp;&amp; r.method == &quot;getCommunicationToken&quot; ) {<br />
+				window.location.hash &amp;&amp; GS.store.set(&quot;httpsHash&quot;, window.location.hash);<br />
+				window.location = &quot;https://&quot; + window.location.host<br />
+			}<br />
+		}<br />
+		r.reject(q)<br />
+	}</p>
+
+<p>	function x() {<br />
+		if (!GS.service.tokenPending ) {<br />
+			GS.service.currentToken = null;<br />
+			GS.service.tokenExpires = 0;<br />
+			GS.service.tokenPending = true;<br />
+			if ( GS.service.sessionID ) {<br />
+				var q = hex_md5(GS.service.sessionID);<br />
+				q = A(false, &quot;getCommunicationToken&quot;, {<br />
+					secretKey: q<br />
+				}, {}, true);<br />
+				q.promise().then(v, function() {<br />
+					var r = new Date;<br />
+					GS.service.tokenPending = false;<br />
+					for ( GS.service.lastTokenFailed = r.valueOf(); GS.service.callsPendingToken.length; ) {<br />
+						r = GS.service.callsPendingToken.shift();<br />
+						r.reject({<br />
+							message: $.localize.getString(&quot;SERVICE_CREATE_TOKEN_FAIL&quot;),<br />
+							code: GS.service.faultCodes.INVALID_TOKEN<br />
+						})<br />
+					}<br />
+				})<br />
+			} else q = A(false, &quot;initiateSession&quot;);<br />
+			q.send();<br />
+			if ( gsConfig.runMode == &quot;dev&quot; &amp;&amp; GS.store.get(&quot;httpsHash&quot;) ) {<br />
+				window.location.hash = GS.store.get(&quot;httpsHash&quot;);<br />
+				GS.store.remove(&quot;httpsHash&quot;)<br />
+			}<br />
+		}<br />
+	}</p>
+
+<p>	function v(q) {<br />
+		var r = new Date;<br />
+		GS.service.lastTokenFailed =<br />
+		false;<br />
+		GS.service.currentToken = q;<br />
+		GS.service.tokenPending = false;<br />
+		for ( GS.service.tokenExpires = 15E5 + r.valueOf(); GS.service.callsPendingToken.length; ) {<br />
+			q = GS.service.callsPendingToken.shift();<br />
+			q.send()<br />
+		}<br />
+		$.publish(&quot;gs.cowbell.ready&quot;)<br />
+	}</p>
+
+<p>	function B(q) {<br />
+		for ( this.country = q ? q : {<br />
+			CC1: 0,<br />
+			ID: 223,<br />
+			CC4: 1073741824,<br />
+			CC3: 0,<br />
+			CC2: 0<br />
+		}; this.callsPendingCountry.length; ) {<br />
+			q = this.callsPendingCountry.shift();<br />
+			q.parameters.country = this.country;<br />
+			q.send()<br />
+		}<br />
+	}</p>
+
+<p>	function E() {<br />
+		if (!GS.service.downForMaintenance ) {<br />
+			GS.service.downForMaintenance = true;<br />
+			GS.getLightbox().open({<br />
+				type: &quot;maintenance&quot;,<br />
+				notCloseable: true,<br />
+				view: {<br />
+					header: &quot;POPUP_MAINT_TITLE&quot;,<br />
+					message: &quot;POPUP_MAINT_MESSAGE&quot;,<br />
+					buttonsLeft: [{<br />
+						label: &quot;POPUP_MAINT_TWITTER&quot;,<br />
+						href: &quot;http://twitter.com/sharkjanitor&quot;<br />
+					}]<br />
+				}<br />
+			});<br />
+			H()<br />
+		}<br />
+	}</p>
+
+<p>	function H() {<br />
+		var q = A(false, &quot;getServiceStatus&quot;);<br />
+		q.promise().then(G, D);<br />
+		q.send()<br />
+	}</p>
+
+<p>	function G(q) {<br />
+		if ( q.status == 1 ) {<br />
+			GS.service.downForMaintenance = false;<br />
+			GS.getLightbox().close()<br />
+		} else _.wait(2E4).then(H)<br />
+	}</p>
+
+<p>	function D() {<br />
+		_.wait(2E4).then(H)<br />
+	}<br />
+	a.prototype.queue = function( q ) {<br />
+		function r() {<br />
+			if ( this.requests.length ) {<br />
+				this.pendingRequest = this.requests.shift();<br />
+				var s = this,<br />
+					u = function() {<br />
+						s.pendingRequest = null;<br />
+						r.call(s)<br />
+					};<br />
+				this.pendingRequest.promise().then(u, u);<br />
+				this.pendingRequest.send()<br />
+			}<br />
+		}<br />
+		this.requests.push(q);<br />
+		this.pendingRequest || r.call(this)<br />
+	};<br />
+	var y = function( q, r ) {<br />
+		return q[q.length - 1] === r ? {} : q[q.length - 1]<br />
+	};<br />
+	c.createRequest = function() {<br />
+		return b.apply(this, arguments)<br />
+	};<br />
+	var A = function() {<br />
+		return b.apply(c, arguments)<br />
+	};<br />
+	c.prototype.promise = function() {<br />
+		return this._dfd.promise()<br />
+	};<br />
+	c.prototype.isResolved = function() {<br />
+		return this._dfd.isResolved()<br />
+	};<br />
+	c.prototype.isRejected = function() {<br />
+		return this._dfd.isRejected()<br />
+	};<br />
+	c.prototype.resolve = function( q ) {<br />
+		for ( var r = 0; r &lt; this.successFilters.length; r++ )<br />
+		if ( $.isFunction(this.successFilters[r]) ) q = this.successFilters[r](q);<br />
+		this.lastResolution = (new Date).valueOf();<br />
+		this._dfd.resolve(q)<br />
+	};<br />
+	c.prototype.resolveWith = function( q, r ) {<br />
+		for ( var s = 0; s &lt; this.successFilters.length; s++ )<br />
+		if ( $.isFunction(this.successFilters[s]) ) r = this.successFilters[s](r);<br />
+		this.lastResolution = (new Date).valueOf();<br />
+		this._dfd.resolveWith(q, r)<br />
+	};<br />
+	c.prototype.reject = function( q ) {<br />
+		for ( var r = 0; r &lt; this.faultFilters.length; r++ )<br />
+		if ( $.isFunction(this.faultFilters[r]) ) q = this.faultFilters[r](q);<br />
+		this._dfd.reject(q)<br />
+	};<br />
+	c.prototype.rejectWith = function( q, r ) {<br />
+		for ( var s = 0; s &lt; this.faultFilters.length; s++ )<br />
+		if ( $.isFunction(this.faultFilters[s]) ) r = this.faultFilters[s](r);<br />
+		this._dfd.rejectWith(q, r)<br />
+	};<br />
+	c.prototype.getSWFable = function() {<br />
+		return {<br />
+			type: this.type,<br />
+			method: this.method,<br />
+			parameters: this.parameters,<br />
+			useHTTPS: this.useHTTPS,<br />
+			overrideHeaders: this.overrideHeaders,<br />
+			overrideKey: GS.service ? GS.service.revToken : GS.Controllers.ServiceController.instance().revToken<br />
+		}<br />
+	};<br />
+	c.prototype.pendingCallCache = [];<br />
+	c.prototype.cacheKeyProps = [&quot;method&quot;, &quot;parameters&quot;, &quot;type&quot;];<br />
+	c.prototype.getCacheKey = function() {<br />
+		var q, r, s = &quot;&quot;;<br />
+		for ( q in this.cacheKeyProps )<br />
+		if ( this.cacheKeyProps.hasOwnProperty(q) ) {<br />
+			r = this[this.cacheKeyProps[q]];<br />
+			s += r instanceof String ? r : JSON.stringify(r)<br />
+		}<br />
+		return hex_md5(s)<br />
+	};<br />
+	c.prototype.send = function( q ) {<br />
+		q &amp;&amp; q.length == 2 &amp;&amp; this.promise().then(q[0], q[1]);<br />
+		GS.service = GS.service || GS.Controllers.ServiceController.instance();<br />
+		var r = this;<br />
+		q = true;<br />
+		var s = (new Date).valueOf();<br />
+		if (!(this.isPending || this.isResolved())) if ( GS.service.clientExpired ) this.reject({<br />
+			message: $.localize.getString(&quot;POPUP_INVALID_CLIENT_MSG&quot;),<br />
+			code: GS.service.faultCodes.INVALID_CLIENT<br />
+		});<br />
+		else {<br />
+			this.isPending = true;<br />
+			if ( this.numRetries &gt;= 3 ) this.reject(this.lastFault);<br />
+			else {<br />
+				if ( this.numRetries &gt; 0 ) q = false;<br />
+				if ( this.type == &quot;facebook&quot; || this.type == &quot;lastfm&quot; ) m(this, {});<br />
+				else if ( GS.service.tokenExpires &gt; s || [&quot;getCommunicationToken&quot;, &quot;initiateSession&quot;, &quot;getServiceStatus&quot;].indexOf(this.method) != -1 ) if ( GS.service.downForMaintenance &amp;&amp; this.method != &quot;getServiceStatus&quot; ) this.reject({<br />
+					message: $.localize.getString(&quot;SERVICE_DOWN_MAINTENANCE&quot;),<br />
+					code: GS.service.faultCodes.MAINTENANCE<br />
+				});<br />
+				else {<br />
+					s = &quot;http://&quot; + GS.service.hostname + &quot;/&quot; + GS.service.defaultEndpoint + &quot;?&quot; + this.method;<br />
+					var u = {<br />
+						header: n(this.overrideHeaders),<br />
+						method: this.method,<br />
+						parameters: this.parameters<br />
+					};<br />
+					if ( GS.service.currentToken ) {<br />
+						GS.service.lastRandomizer = p();<br />
+						var C = hex_sha1(this.method + &quot;:&quot; + GS.service.currentToken + &quot;:&quot; + GS.service.revToken + &quot;:&quot; + GS.service.lastRandomizer);<br />
+						u.header.token = GS.service.lastRandomizer + C<br />
+					}<br />
+					this.useSWF || this.useHTTPS ? m(this, u.header) : $.ajax($.extend({}, this.options, {<br />
+						contentType: &quot;application/json&quot;,<br />
+						dataType: &quot;json&quot;,<br />
+						type: &quot;POST&quot;,<br />
+						data: JSON.stringify(u),<br />
+						cache: q,<br />
+						url: s,<br />
+						success: function( F ) {<br />
+							o(F, r)<br />
+						},<br />
+						error: function( F, J, K ) {<br />
+							console.warn(&quot;ajax error: status: &quot; + J + &quot;, error: &quot; + K, F, this);<br />
+							F = {};<br />
+							switch ( J ) {<br />
+							case &quot;parsererror&quot;:<br />
+								F.code = GS.service.faultCodes.PARSE_ERROR;<br />
+								F.message = $.localize.getString(&quot;SERVICE_PARSE_JSON&quot;);<br />
+								break;<br />
+							case &quot;timeout&quot;:<br />
+								F.code = GS.service.faultCodes.HTTP_TIMEOUT;<br />
+								F.message = $.localize.getString(&quot;SERVICE_REQUEST_TIMEOUT&quot;);<br />
+								break;<br />
+							case &quot;error&quot;:<br />
+							case &quot;notmodified&quot;:<br />
+							default:<br />
+								F.code = GS.service.faultCodes.HTTP_ERROR;<br />
+								F.message =<br />
+								$.localize.getString(&quot;SERVICE_HTTP_ERROR&quot;);<br />
+								break<br />
+							}<br />
+							w(F, r)<br />
+						}<br />
+					}))<br />
+				}<br />
+				else {<br />
+					this.isPending = false;<br />
+					GS.service.callsPendingToken.push(this);<br />
+					x()<br />
+				}<br />
+			}<br />
+		}<br />
+	};<br />
+	c.prototype.retry = function( q ) {<br />
+		var r = this;<br />
+		this.isPending = false;<br />
+		this.numRetries++;<br />
+		_.wait(q).then(function() {<br />
+			r.send()<br />
+		})<br />
+	};<br />
+	c.prototype.queue = function( q ) {<br />
+		if (!_.defined(c.prototype.queues) ) c.prototype.queues = {};<br />
+		var r = c.prototype.queues[q];<br />
+		_.defined(r) || (r = c.prototype.queues[q] = new a);<br />
+		r.queue(this)<br />
+	};<br />
+	g.createRequest = function() {<br />
+		return b.apply(this, arguments)<br />
+	};<br />
+	g.prototype = $.extend(g.prototype, c.prototype);<br />
+	g.prototype.getSWFable = function() {<br />
+		return {<br />
+			type: this.type,<br />
+			method: this.method,<br />
+			parameters: this.parameters,<br />
+			httpMethod: this.httpMethod<br />
+		}<br />
+	};<br />
+	h.createRequest = function() {<br />
+		return b.apply(this, arguments)<br />
+	};<br />
+	h.prototype = $.extend(h.prototype, c.prototype);<br />
+	h.prototype.getSWFable = function() {<br />
+		return {<br />
+			type: this.type,<br />
+			parameters: this.parameters<br />
+		}<br />
+	};<br />
+	var I;<br />
+	$.Class.extend(&quot;GS.Controllers.ServiceController&quot;, {<br />
+		configDefaults: {<br />
+			hostname: window.location.host,<br />
+			sessionID: null,<br />
+			client: &quot;htmlshark&quot;,<br />
+			clientRevision: &quot;20111117&quot;,<br />
+			revToken: &quot;bewareOfTheGingerApocalypse&quot;,<br />
+			country: null,<br />
+			privacy: 0,<br />
+			uuID: &quot;&quot;,<br />
+			defaultEndpoint: &quot;more.php&quot;<br />
+		},<br />
+		instance: function() {<br />
+			I || (I = new GS.Controllers.ServiceController({<br />
+				hostname: window.location.host,<br />
+				sessionID: gsConfig.sessionID,<br />
+				country: gsConfig.country,<br />
+				privacy: gsConfig.user.Privacy,<br />
+				uuID: gsConfig.uuid,<br />
+				defaultEndpoint: gsConfig.endpoint<br />
+			}));<br />
+			return I<br />
+		}<br />
+	}, {<br />
+		faultCodes: {<br />
+			INVALID_CLIENT: 1024,<br />
+			RATE_LIMITED: 512,<br />
+			INVALID_TOKEN: 256,<br />
+			INVALID_SESSION: 16,<br />
+			MAINTENANCE: 10,<br />
+			MUST_BE_LOGGED_IN: 8,<br />
+			HTTP_TIMEOUT: 6,<br />
+			PARSE_ERROR: 4,<br />
+			HTTP_ERROR: 2,<br />
+			EMPTY_RESULT: -256<br />
+		},<br />
+		init: function( q ) {<br />
+			$.extend(this, GS.Controllers.ServiceController.configDefaults, q);<br />
+			this.currentToken = null;<br />
+			this.tokenExpires = 0;<br />
+			this.lastTokenFailed = this.tokenPending = false;<br />
+			this.lastRandomizer = null;<br />
+			this.downForMaintenance = false;<br />
+			this.lastDowntimeNotification = 0;<br />
+			this.clientExpired = false;<br />
+			this.callsPendingToken = [];<br />
+			this.callsPendingCountry = [];<br />
+			this.callsPendingSWF = [];<br />
+			this.outgoingSWFCalls = {};<br />
+			this.swfProxy = null;<br />
+			this.sessionID || A(false, &quot;initiateSession&quot;, {}, {<br />
+				async: false<br />
+			}).send();<br />
+			var r = c.createRequest(false, &quot;getCountry&quot;);<br />
+			r.faultFilters.push(function() {<br />
+				return false<br />
+			});<br />
+			r.promise().then(this.callback(B), this.callback(B));<br />
+			this.country ? r.resolve(this.country) : _.wait(1).then(function() {<br />
+				r.send()<br />
+			})<br />
+		},<br />
+		serviceExists: function() {<br />
+			return true<br />
+		},<br />
+		swfReady: function() {<br />
+			for ( var q; this.callsPendingSWF.length; ) {<br />
+				q = this.callsPendingSWF.shift();<br />
+				q.send()<br />
+			}<br />
+			return true<br />
+		},<br />
+		swfBadHost: function() {<br />
+			GS.getLightbox().open({<br />
+				type: &quot;badHost&quot;,<br />
+				notCloseable: true,<br />
+				view: {<br />
+					header: &quot;POPUP_BAD_HOST_TITLE&quot;,<br />
+					message: &quot;POPUP_BAD_HOST_MSG&quot;,<br />
+					buttonsLeft: [{<br />
+						href: &quot;http://www.grooveshark.com&quot;,<br />
+						labelHTML: &quot;http://www.grooveshark.com&quot;<br />
+					}]<br />
+				}<br />
+			})<br />
+		},<br />
+		swfSuccess: function( q, r ) {<br />
+			var s = this.outgoingSWFCalls[r];<br />
+			s &amp;&amp; o(q, s);<br />
+			delete this.outgoingSWFCalls[r]<br />
+		},<br />
+		swfFault: function( q, r ) {<br />
+			var s = this.outgoingSWFCalls[r];<br />
+			s &amp;&amp; w(q, s);<br />
+			delete this.outgoingSWFCalls[r]<br />
+		},<br />
+		swfNeedsToken: function() {<br />
+			x()<br />
+		},<br />
+		onChatData: function( q ) {<br />
+			if ( q = q.data.data || q.data || q ) switch ( q.messageType ) {<br />
+			case &quot;userPointsAwarded&quot;:<br />
+				q.awardedPoints &amp;&amp; GS.user &amp;&amp; GS.user.addPoints(q.awardedPoints);<br />
+				break;<br />
+			case &quot;apiMethodCall&quot;:<br />
+				if ( q.method &amp;&amp; window.Grooveshark ) {<br />
+					if (!$.isArray(q.parameters) ) q.parameters = [];<br />
+					var r = Grooveshark[q.method];<br />
+					$.isFunction(r) &amp;&amp; r.apply(Grooveshark, q.parameters)<br />
+				}<br />
+				break;<br />
+			default:<br />
+				console.log(&quot;unhandled chat data:&quot;, q)<br />
+			}<br />
+		},<br />
+		onChatError: function( q ) {<br />
+			console.log(&quot;Got chat error, event:&quot;, q)<br />
+		},<br />
+		httpsFormSubmit: function( q, r, s ) {<br />
+			var u = $(&quot;#httpsForm&quot;);<br />
+			$(&quot;#httpsIframe&quot;);<br />
+			var C = [];<br />
+			u.html(&quot;&quot;);<br />
+			u.attr(&quot;action&quot;, q);<br />
+			u.attr(&quot;method&quot;, &quot;post&quot;);<br />
+			u.attr(&quot;target&quot;, &quot;httpsIframe&quot;);<br />
+			u.attr(&quot;enctype&quot;, &quot;multipart/form-data&quot;);<br />
+			_.forEach(r, function( F, J ) {<br />
+				C.push('&lt;input type=&quot;hidden&quot; name=&quot;' + J + '&quot; value=&quot;' + F + '&quot; /&gt;')<br />
+			});<br />
+			u.append(C.join(&quot;&quot;));<br />
+			window.setupBridge =<br />
+			GS.airbridge &amp;&amp; GS.airbridge.isDesktop ?<br />
+			function() {<br />
+				var F = {};<br />
+				F[s] = window[s];<br />
+				document.getElementById(&quot;httpsIframe&quot;).contentWindow.parentSandboxBridge = F<br />
+			} : function() {};<br />
+			u.submit()<br />
+		},<br />
+		isFirstVisit: function( q ) {<br />
+			A(false, &quot;isFirstVisit&quot;, {}, {}, false, true).send([q, null])<br />
+		},<br />
+		makeFacebookRequest: function( q, r, s, u, C ) {<br />
+			g.createRequest(false, q, r, s).send([u, C])<br />
+		},<br />
+		makeLastfmRequest: function( q, r, s ) {<br />
+			q = h.createRequest(false, q);<br />
+			q.promise().then(r, s);<br />
+			q.send()<br />
+		},<br />
+		rapleafPersonalize: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(false, &quot;personalize&quot;, {<br />
+				redirectURL: q<br />
+			}, u, false, true);<br />
+			u.type = &quot;rapleaf&quot;;<br />
+			u.send([r, s])<br />
+		},<br />
+		rapleafDirect: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(false, &quot;direct&quot;, {<br />
+				email: q<br />
+			}, u, false, true);<br />
+			u.type = &quot;rapleaf&quot;;<br />
+			u.send([r, s])<br />
+		},<br />
+		getAlbumByID: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getAlbumByID&quot;, {<br />
+				albumID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getArtistByID: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getArtistByID&quot;, {<br />
+				artistID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getPlaylistByID: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getPlaylistByID&quot;, {<br />
+				playlistID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getQueueSongListFromSongIDs: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getQueueSongListFromSongIDs&quot;, {<br />
+				songIDs: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getSongFromToken: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(true, &quot;getSongFromToken&quot;, {<br />
+				token: q,<br />
+				country: this.country<br />
+			}, u);<br />
+			u.promise().then(r, s);<br />
+			this.country ? u.send() : this.callsPendingCountry.push(u)<br />
+		},<br />
+		getTokenForSong: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(true, &quot;getTokenForSong&quot;, {<br />
+				songID: q,<br />
+				country: this.country<br />
+			}, u);<br />
+			u.promise().then(r, s);<br />
+			this.country ? u.send() : this.callsPendingCountry.push(u)<br />
+		},<br />
+		getUserByID: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getUserByID&quot;, {<br />
+				userID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		albumGetSongs: function( q, r, s, u, C ) {<br />
+			r = _.orEqual(r, true);<br />
+			s = _.orEqual(s, 0);<br />
+			var F = y(arguments, C);<br />
+			A(true, &quot;albumGetSongs&quot;, {<br />
+				albumID: q,<br />
+				isVerified: r,<br />
+				offset: s<br />
+			}, F).send([u, C])<br />
+		},<br />
+		artistGetAllSongs: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;artistGetAllSongs&quot;, {<br />
+				artistID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		artistGetArtAttribution: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;artistGetArtAttribution&quot;, {<br />
+				artistID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		playlistGetSongs: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;playlistGetSongs&quot;, {<br />
+				playlistID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getArtistRecentListeners: function( q, r, s ) {<br />
+			req = c.createRequest(true, &quot;getArtistRecentListeners&quot;, {<br />
+				artistID: q<br />
+			}, arguments[arguments.length - 1] === s ? {} : arguments[arguments.length - 1]);<br />
+			req.promise().then(r, s);<br />
+			req.send()<br />
+		},<br />
+		getAlbumRecentListeners: function( q, r, s ) {<br />
+			req = c.createRequest(true, &quot;getAlbumRecentListeners&quot;, {<br />
+				albumID: q<br />
+			}, arguments[arguments.length - 1] === s ? {} : arguments[arguments.length - 1]);<br />
+			req.promise().then(r, s);<br />
+			req.send()<br />
+		},<br />
+		getSongRecentListeners: function( q, r, s ) {<br />
+			req = c.createRequest(true, &quot;getSongRecentListeners&quot;, {<br />
+				songID: q<br />
+			}, arguments[arguments.length - 1] === s ? {} : arguments[arguments.length - 1]);<br />
+			req.promise().then(r, s);<br />
+			req.send()<br />
+		},<br />
+		popularGetSongs: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			({<br />
+				daily: true,<br />
+				weekly: true,<br />
+				monthly: true<br />
+			})[q] || (q = &quot;daily&quot;);<br />
+			A(true, &quot;popularGetSongs&quot;, {<br />
+				type: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		featuredGetCurrentFeatured: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;featuredGetCurrentFeatured&quot;, {<br />
+				date: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getArtistsForTagRadio: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(true, &quot;getArtistsForTagRadio&quot;, {<br />
+				tagID: q<br />
+			}, u);<br />
+			u.promise().then(r, s);<br />
+			u.send()<br />
+		},<br />
+		albumGetFans: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(true, &quot;albumGetFans&quot;, {<br />
+				albumID: q,<br />
+				offset: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		artistGetFans: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(true, &quot;artistGetFans&quot;, {<br />
+				artistID: q,<br />
+				offset: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		playlistGetFans: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;playlistGetFans&quot;, {<br />
+				playlistID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		songGetFans: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(true, &quot;songGetFans&quot;, {<br />
+				songID: q,<br />
+				offset: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		userGetFans: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(true, &quot;userGetFans&quot;, {<br />
+				userID: q,<br />
+				offset: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		authenticateUser: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			A(false, &quot;authenticateUser&quot;, {<br />
+				username: q,<br />
+				password: r,<br />
+				savePassword: s<br />
+			}, F, true, true).send([u, C])<br />
+		},<br />
+		authenticateFacebookUser: function( q, r, s, u, C, F, J ) {<br />
+			var K = y(arguments, J);<br />
+			A(false, &quot;authenticateFacebookUser&quot;, {<br />
+				facebookUserID: q,<br />
+				sessionKey: r,<br />
+				accessToken1: s,<br />
+				accessToken3: u,<br />
+				accessTokenEx: C<br />
+			}, K, true, true).send([F, J])<br />
+		},<br />
+		authenticateGoogleUser: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;authenticateGoogleUser&quot;, {}, s, true, true).send([q, r])<br />
+		},<br />
+		reportUserChange: function( q, r, s, u ) {<br />
+			var C = y(arguments, u),<br />
+				F = {<br />
+					userID: q.UserID,<br />
+					email: q.Email,<br />
+					username: q.FName,<br />
+					userTrackingID: q.userTrackingID,<br />
+					picture: q.Picture,<br />
+					privacy: _.defined(r) ? r : q.Privacy<br />
+				};<br />
+			A(false, &quot;reportUserChange&quot;, F, C, false, true).send([s, u])<br />
+		},<br />
+		logoutUser: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;logoutUser&quot;, {}, s).send([q, r])<br />
+		},<br />
+		userForgotPassword: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;userForgotPassword&quot;, {<br />
+				usernameOrEmail: q<br />
+			}, u, true).send([r, s])<br />
+		},<br />
+		resetPassword: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			A(false, &quot;resetPassword&quot;, {<br />
+				usernameOrEmail: q,<br />
+				secretResetCode: r,<br />
+				newPassword: s<br />
+			}, F, true).send([u, C])<br />
+		},<br />
+		changePassword: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;changePassword&quot;, {<br />
+				oldPassword: q,<br />
+				newPassword: r<br />
+			}, C, true, true).send([s, u])<br />
+		},<br />
+		registerUser: function( q, r, s, u, C, F, J, K, L, M, O, N ) {<br />
+			var P = y(arguments, N);<br />
+			A(false, &quot;registerUser&quot;, {<br />
+				username: q,<br />
+				password: r,<br />
+				firstName: s,<br />
+				lastName: u,<br />
+				emailAddress: C,<br />
+				sex: F,<br />
+				birthDate: J,<br />
+				flags: K,<br />
+				inviteID: L,<br />
+				savePassword: M<br />
+			}, P, true, true).send([O, N])<br />
+		},<br />
+		userDisableAccount: function( q, r, s, u, C, F ) {<br />
+			var J = y(arguments, F);<br />
+			A(false, &quot;userDisableAccount&quot;, {<br />
+				password: q,<br />
+				reason: r,<br />
+				details: s,<br />
+				contact: u<br />
+			}, J, true, true).send([C, F])<br />
+		},<br />
+		getIsUsernameEmailAvailable: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;getIsUsernameEmailAvailable&quot;, {<br />
+				username: q,<br />
+				emailAddress: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		getUserByInviteID: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getUserByInviteID&quot;, {<br />
+				inviteID: q<br />
+			}, u, true).send([r, s])<br />
+		},<br />
+		sendInvites: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;sendInvites&quot;, {<br />
+				emailAddresses: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getUserSettings: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;getUserSettings&quot;, {}, s).send([q, r])<br />
+		},<br />
+		getUserTopArtists: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getUserTopArtists&quot;, {<br />
+				userID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		changeUserInfoEx: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;changeUserInfoEx&quot;, {<br />
+				shitToChange: q,<br />
+				password: r<br />
+			}, C, true).send([s, u])<br />
+		},<br />
+		changeNotificationSettings: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;changeNotificationSettings&quot;, {<br />
+				newValue: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		changePrivacySettings: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;changePrivacySettings&quot;, {<br />
+				newValue: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		changeFeedSettings: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;changeFeedSettings&quot;, {<br />
+				newValue: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getSubscriptionDetails: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;getSubscriptionDetails&quot;, {}, s, true, true).send([q, r])<br />
+		},<br />
+		userGetSongsInLibrary: function( q, r, s, u, C ) {<br />
+			r = _.orEqual(r, 0);<br />
+			var F = y(arguments, C);<br />
+			A(s, &quot;userGetSongsInLibrary&quot;, {<br />
+				userID: q,<br />
+				page: r<br />
+			}, F).send([u, C])<br />
+		},<br />
+		userGetLibraryTSModified: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;userGetLibraryTSModified&quot;, {<br />
+				userID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		userAddSongsToLibrary: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(false, &quot;userAddSongsToLibrary&quot;, {<br />
+				songs: q<br />
+			}, u);<br />
+			u.promise().then(r, s);<br />
+			u.queue(&quot;library&quot;)<br />
+		},<br />
+		userRemoveSongsFromLibrary: function( q, r, s, u, C, F ) {<br />
+			var J = y(arguments, F);<br />
+			J = A(false, &quot;userRemoveSongsFromLibrary&quot;, {<br />
+				userID: q,<br />
+				songIDs: r,<br />
+				albumIDs: s,<br />
+				artistIDs: u<br />
+			}, J);<br />
+			J.promise().then(C, F);<br />
+			J.queue(&quot;library&quot;)<br />
+		},<br />
+		getFavorites: function( q, r, s, u, C ) {<br />
+			r = r || &quot;Songs&quot;;<br />
+			var F = y(arguments, C);<br />
+			A(s, &quot;getFavorites&quot;, {<br />
+				userID: q,<br />
+				ofWhat: r<br />
+			}, F).send([u, C])<br />
+		},<br />
+		favorite: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			F = A(false, &quot;favorite&quot;, {<br />
+				what: q,<br />
+				ID: r,<br />
+				details: s<br />
+			}, F);<br />
+			F.promise().then(u, C);<br />
+			F.queue(&quot;library&quot;)<br />
+		},<br />
+		unfavorite: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			C = A(false, &quot;unfavorite&quot;, {<br />
+				what: q,<br />
+				ID: r<br />
+			}, C);<br />
+			C.promise().then(s, u);<br />
+			C.queue(&quot;library&quot;)<br />
+		},<br />
+		getUserSidebar: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;getUserSidebar&quot;, {}, s).send([q, r])<br />
+		},<br />
+		addShortcutToUserSidebar: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			F = A(false, &quot;addShortcutToUserSidebar&quot;, {<br />
+				what: q,<br />
+				id: r,<br />
+				name: s<br />
+			}, F);<br />
+			F.promise().then(u, C);<br />
+			F.queue(&quot;library&quot;)<br />
+		},<br />
+		removeShortcutFromUserSidebar: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			C = A(false, &quot;removeShortcutFromUserSidebar&quot;, {<br />
+				what: q,<br />
+				id: r<br />
+			}, C);<br />
+			C.promise().then(s, u);<br />
+			C.queue(&quot;library&quot;)<br />
+		},<br />
+		userGetPlaylists: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(r, &quot;userGetPlaylists&quot;, {<br />
+				userID: q<br />
+			}, C).send([s, u])<br />
+		},<br />
+		createPlaylist: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			A(false, &quot;createPlaylist&quot;, {<br />
+				playlistName: q,<br />
+				songIDs: r,<br />
+				playlistAbout: s<br />
+			}, F).send([u, C])<br />
+		},<br />
+		deletePlaylist: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			C = A(false, &quot;deletePlaylist&quot;, {<br />
+				playlistID: q,<br />
+				name: r<br />
+			}, C);<br />
+			C.promise().then(s, u);<br />
+			C.queue(&quot;playlist&quot;)<br />
+		},<br />
+		playlistUndelete: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(false, &quot;playlistUndelete&quot;, {<br />
+				playlistID: q<br />
+			}, u);<br />
+			u.promise().then(r, s);<br />
+			u.queue(&quot;playlist&quot;)<br />
+		},<br />
+		overwritePlaylist: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			F = A(false, &quot;overwritePlaylist&quot;, {<br />
+				playlistID: q,<br />
+				playlistName: r,<br />
+				songIDs: s<br />
+			}, F);<br />
+			F.promise().then(u, C);<br />
+			F.queue(&quot;playlist&quot;)<br />
+		},<br />
+		playlistAddSongToExisting: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			C = A(false, &quot;playlistAddSongToExisting&quot;, {<br />
+				playlistID: q,<br />
+				songID: r<br />
+			}, C);<br />
+			C.promise().then(s, u);<br />
+			C.queue(&quot;playlist&quot;)<br />
+		},<br />
+		renamePlaylist: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			C = A(false, &quot;renamePlaylist&quot;, {<br />
+				playlistID: q,<br />
+				playlistName: r<br />
+			}, C);<br />
+			C.promise().then(s, u);<br />
+			C.queue(&quot;playlist&quot;)<br />
+		},<br />
+		setPlaylistAbout: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			C = A(false, &quot;setPlaylistAbout&quot;, {<br />
+				playlistID: q,<br />
+				about: r<br />
+			}, C);<br />
+			C.promise().then(s, u);<br />
+			C.queue(&quot;playlist&quot;)<br />
+		},<br />
+		getResultsFromSearch: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			F = A(true, &quot;getResultsFromSearch&quot;, {<br />
+				query: q,<br />
+				type: r,<br />
+				guts: GS.guts ? GS.getGuts().shouldLog : 0,<br />
+				ppOverride: s<br />
+			}, F);<br />
+			r === &quot;Artists&quot; &amp;&amp; F.successFilters.push(function( J ) {<br />
+				if ( $.isArray(J.result) ) J.result = _.map(J.result, function( K ) {<br />
+					K.hasOwnProperty(&quot;AlbumID&quot;) &amp;&amp; delete K.AlbumID;<br />
+					K.hasOwnProperty(&quot;AlbumName&quot;) &amp;&amp; delete K.AlbumName;<br />
+					K.hasOwnProperty(&quot;SongName&quot;) &amp;&amp; delete K.SongName;<br />
+					return K<br />
+				});<br />
+				return J<br />
+			});<br />
+			F.send([u, C])<br />
+		},<br />
+		getSearchSuggestion: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getSearchSuggestion&quot;, {<br />
+				query: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getAutocomplete: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(true, &quot;getAutocomplete&quot;, {<br />
+				query: q,<br />
+				type: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		getProfileFeed: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(1E4, &quot;getProfileFeed&quot;, {<br />
+				lastDocumentID: q,<br />
+				lastEventID: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		getUserProfileFeed: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			A(1E4, &quot;getUserProfileFeed&quot;, {<br />
+				userID: q,<br />
+				lastDocumentID: r,<br />
+				lastEventID: s<br />
+			}, F).send([u, C])<br />
+		},<br />
+		getCombinedFeed: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(1E4, &quot;getCombinedFeed&quot;, {<br />
+				excludeUsers: q,<br />
+				lastEventID: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		getUserCombinedFeed: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			A(3E4, &quot;getUserCombinedFeed&quot;, {<br />
+				userID: q,<br />
+				excludeUsers: r,<br />
+				lastEventID: s<br />
+			}, F).send([u, C])<br />
+		},<br />
+		getInterestingEvents: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(3E4, &quot;getInterestingEvents&quot;, {<br />
+				limit: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getArtistProfileFeed: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			A(false, &quot;getArtistProfileFeed&quot;, {<br />
+				artistID: q,<br />
+				lastDocumentID: r,<br />
+				lastEventID: s<br />
+			}, F).send([u, C])<br />
+		},<br />
+		hideUserEvent: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;hideUserEvent&quot;, {<br />
+				eventID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		changeFollowFlags: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;changeFollowFlags&quot;, {<br />
+				userIDsFlags: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		sendFeedBroadcast: function( q, r, s, u, C, F ) {<br />
+			var J = y(arguments, F);<br />
+			A(false, &quot;sendFeedBroadcast&quot;, {<br />
+				what: q,<br />
+				ID: r,<br />
+				people: s,<br />
+				message: u<br />
+			}, J).send([C, F])<br />
+		},<br />
+		addEventComment: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;addEventComment&quot;, {<br />
+				eventID: q,<br />
+				comment: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		hideEventComment: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;hideEventComment&quot;, {<br />
+				eventID: r,<br />
+				commentID: q<br />
+			}, C).send([s, u])<br />
+		},<br />
+		getUserNotifications: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(6E4, &quot;getUserNotifications&quot;, {}, s).send([q, r])<br />
+		},<br />
+		feedsBanArtist: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;feedsBanArtist&quot;, {<br />
+				artistID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		feedsUnbanArtist: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;feedsUnbanArtist&quot;, {<br />
+				artistID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		feedsGetBannedArtists: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;feedsGetBannedArtists&quot;, {}, s).send([q, r])<br />
+		},<br />
+		feedsRemoveEventFromProfile: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;feedsRemoveEventFromProfile&quot;, {<br />
+				type: q,<br />
+				time: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		logTargetedThemeImpression: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;logTargetedThemeImpression&quot;, {<br />
+				themeID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		logThemeOutboundLinkClick: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;logThemeOutboundLinkClick&quot;, {<br />
+				themeID: q,<br />
+				linkID: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		provideSongFeedbackMessage: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;provideSongFeedbackMessage&quot;, {<br />
+				songID: q,<br />
+				message: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		provideSongFeedbackVote: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			A(false, &quot;provideSongFeedbackVote&quot;, {<br />
+				songID: q,<br />
+				vote: r,<br />
+				artistID: s<br />
+			}, F).send([u, C])<br />
+		},<br />
+		sendShare: function( q, r, s, u, C, F, J, K ) {<br />
+			var L = y(arguments, K);<br />
+			L = A(false, &quot;sendShare&quot;, {<br />
+				what: q,<br />
+				ID: r,<br />
+				people: s,<br />
+				country: this.country,<br />
+				override: u,<br />
+				message: C<br />
+			}, L);<br />
+			L.promise().then(J, K);<br />
+			if ( F ) L.overrideHeaders.privacy = 1;<br />
+			this.country ? L.send() : this.callsPendingCountry.push(L);<br />
+			GS.getGuts().logEvent(&quot;itemSharePerformed&quot;, {<br />
+				type: q,<br />
+				id: r<br />
+			})<br />
+		},<br />
+		getContactInfoForFollowers: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;getContactInfoForFollowers&quot;, {}, s).send([q, r])<br />
+		},<br />
+		getSongkickEventsFromArtists: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(true, &quot;getSongkickEventsFromArtists&quot;, {<br />
+				artistIDs: q,<br />
+				names: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		getGoogleAuthToken: function( q, r, s, u ) {<br />
+			var C = &quot;EscapeMG-Grooveshark-&quot; + this.clientRevision,<br />
+				F = y(arguments, u);<br />
+			A(false, &quot;getGoogleAuthToken&quot;, {<br />
+				Email: q,<br />
+				Passwd: r,<br />
+				source: C<br />
+			}, F, true).send([s, u])<br />
+		},<br />
+		getGoogleContacts: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			req = A(false, &quot;getGoogleContacts&quot;, {<br />
+				authToken: q<br />
+			}, u, false, true);<br />
+			req.send([r, s])<br />
+		},<br />
+		getDetailsForBroadcast: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getDetailsForBroadcast&quot;, {<br />
+				songID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		broadcastSong: function( q, r, s, u, C, F, J, K, L ) {<br />
+			var M = y(arguments, L);<br />
+			A(false, &quot;broadcastSong&quot;, {<br />
+				songID: q,<br />
+				message: r,<br />
+				username: s,<br />
+				password: u,<br />
+				saveCredentials: C,<br />
+				service: F,<br />
+				song: J<br />
+			}, M, true).send([K, L])<br />
+		},<br />
+		getUserFacebookData: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;getUserFacebookDataEx&quot;, {}, s, true).send([q, r])<br />
+		},<br />
+		saveUserFacebookData: function( q, r, s, u, C, F, J, K ) {<br />
+			var L = y(arguments, K);<br />
+			A(false, &quot;saveUserFacebookDataEx&quot;, {<br />
+				facebookUserID: q,<br />
+				sessionKey: r,<br />
+				accessToken1: s,<br />
+				accessToken3: u,<br />
+				flags: C,<br />
+				accessTokenEx: F<br />
+			}, L, true, true).send([J, K])<br />
+		},<br />
+		updateUserFacebookData: function( q, r, s, u, C, F, J, K ) {<br />
+			var L = y(arguments, K);<br />
+			A(false, &quot;updateUserFacebookData&quot;, {<br />
+				facebookUserID: q,<br />
+				sessionKey: r,<br />
+				accessToken1: s,<br />
+				accessToken3: u,<br />
+				flags: C,<br />
+				accessTokenEx: F<br />
+			}, L, true, true).send([J, K])<br />
+		},<br />
+		removeUserFacebookData: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;removeUserFacebookData&quot;, {<br />
+				facebookUserID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getUserGoogleData: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;getUserGoogleData&quot;, {}, s, true, true).send([q, r])<br />
+		},<br />
+		saveUserGoogleData: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;saveUserGoogleData&quot;, {}, s).send([q, r])<br />
+		},<br />
+		updateUserGoogleData: function( q, r ) {<br />
+			req = c.createRequest(false, &quot;updateUserGoogleData&quot;, {}, arguments[arguments.length - 1] === r ? {} : arguments[arguments.length - 1]);<br />
+			req.promise().then(q, r);<br />
+			req.send()<br />
+		},<br />
+		updateUserGoogleData: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;updateUserGoogleData&quot;, {}, s).send([q, r])<br />
+		},<br />
+		removeUserGoogleData: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;removeUserGoogleData&quot;, {<br />
+				googleID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getUsernameSuggestions: function( q, r, s, u, C ) {<br />
+			var F = y(arguments, C);<br />
+			A(true, &quot;getUsernameSuggestions&quot;, {<br />
+				baseUsername: q,<br />
+				fullName: r,<br />
+				idOrRand: s<br />
+			}, F).send([u, C])<br />
+		},<br />
+		registerFacebookUser: function( q, r, s, u, C, F, J, K, L, M, O, N, P, R, Q ) {<br />
+			var S = y(arguments, Q);<br />
+			A(false, &quot;registerFacebookUser&quot;, {<br />
+				username: q,<br />
+				firstName: r,<br />
+				emailAddress: s,<br />
+				sex: u,<br />
+				birthDate: C,<br />
+				flags: F,<br />
+				inviteID: J,<br />
+				facebookUserID: K,<br />
+				sessionKey: L,<br />
+				accessToken1: M,<br />
+				accessToken3: O,<br />
+				accessTokenEx: N,<br />
+				facebookFlags: P<br />
+			}, S, true, true).send([R, Q])<br />
+		},<br />
+		getGroovesharkUsersFromFacebookUserIDs: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;getGroovesharkUsersFromFacebookUserIDs&quot;, {<br />
+				facebookUserIDs: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		registerGoogleUser: function( q, r, s, u, C, F, J, K, L ) {<br />
+			var M = y(arguments, L);<br />
+			A(false, &quot;registerGoogleUser&quot;, {<br />
+				username: q,<br />
+				firstName: r,<br />
+				emailAddress: s,<br />
+				sex: u,<br />
+				birthDate: C,<br />
+				flags: F,<br />
+				inviteID: J<br />
+			}, M, true, true).send([K, L])<br />
+		},<br />
+		updateLastfmService: function( q, r, s, u, C, F, J ) {<br />
+			var K = y(arguments, J);<br />
+			A(false, &quot;updateLastfmService&quot;, {<br />
+				session: q,<br />
+				token: r,<br />
+				username: s,<br />
+				flagsAdd: u,<br />
+				flagsRemove: C<br />
+			}, K).send([F, J])<br />
+		},<br />
+		saveLastfmService: function( q, r, s, u, C, F ) {<br />
+			var J = y(arguments, F);<br />
+			A(false, &quot;saveLastfmService&quot;, {<br />
+				session: q,<br />
+				token: r,<br />
+				username: s,<br />
+				flags: u<br />
+			}, J).send([C, F])<br />
+		},<br />
+		getLastfmService: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;getLastfmService&quot;, {}, s).send([q, r])<br />
+		},<br />
+		removeLastfmService: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;removeLastfmService&quot;, {<br />
+				lastfmUsername: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getAffiliateDownloadURLs: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;getAffiliateDownloadURLs&quot;, {<br />
+				songName: q,<br />
+				artistName: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		getServiceStatus: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;getServiceStatus&quot;, {}, s).send([q, r])<br />
+		},<br />
+		provideVIPFeedback: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;provideVIPFeedback&quot;, {<br />
+				fromAddress: q,<br />
+				message: r<br />
+			}, C).send([s, u])<br />
+		},<br />
+		artistGetSimilarArtists: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(true, &quot;artistGetSimilarArtists&quot;, {<br />
+				artistID: q<br />
+			}, u);<br />
+			u.promise().then(r, s);<br />
+			u.send()<br />
+		},<br />
+		getThemeFromDFP: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(false, &quot;getThemeFromDFP&quot;, {<br />
+				paramString: q<br />
+			}, u, false, true);<br />
+			u.type = &quot;dfp&quot;;<br />
+			u.send([r, s])<br />
+		},<br />
+		getNotificationFromDFP: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			u = A(false, &quot;getNotificationFromDFP&quot;, {<br />
+				paramString: q<br />
+			}, u, false, true);<br />
+			u.type = &quot;dfp&quot;;<br />
+			u.send([r, s])<br />
+		},<br />
+		getItemByPageName: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(true, &quot;getItemByPageName&quot;, {<br />
+				name: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getPageNameByIDType: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			C = A(true, &quot;getPageNameByIDType&quot;, {<br />
+				id: q,<br />
+				type: r<br />
+			}, C);<br />
+			C.promise().then(s, u);<br />
+			C.promise().then(function( F ) {<br />
+				F.name &amp;&amp; window.GS &amp;&amp; GS.router &amp;&amp; GS.router.cachePageName(F.name, r, q)<br />
+			});<br />
+			C.send()<br />
+		},<br />
+		userGetPoints: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;userGetPoints&quot;, {}, s).send([q, r])<br />
+		},<br />
+		getClearvoiceMemberInfo: function( q, r, s ) {<br />
+			var u = y(arguments, s),<br />
+				C = {};<br />
+			if ( q ) C.guid = q;<br />
+			A(false, &quot;getClearvoiceMemberInfo&quot;, C, u, true).send([r, s])<br />
+		},<br />
+		getUserIDByClearvoiceEmail: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;getUserIDByClearvoiceEmail&quot;, {<br />
+				email: q<br />
+			}, u, true).send([r, s])<br />
+		},<br />
+		saveClearvoiceMemberInfo: function( q, r, s, u, C, F ) {<br />
+			var J = y(arguments, F);<br />
+			A(false, &quot;saveClearvoiceMemberInfo&quot;, {<br />
+				guid: q,<br />
+				fName: r,<br />
+				lName: s,<br />
+				email: u<br />
+			}, J, true).send([C, F])<br />
+		},<br />
+		addClearvoiceAnswers: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;addClearvoiceAnswers&quot;, {<br />
+				questionsAndAnswers: q<br />
+			}, u, true).send([r, s])<br />
+		},<br />
+		getUserSurveys: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			A(false, &quot;getUserSurveys&quot;, {<br />
+				userID: q<br />
+			}, u).send([r, s])<br />
+		},<br />
+		getAvailableSurveys: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(false, &quot;getAvailableSurveys&quot;, {}, s).send([q, r])<br />
+		},<br />
+		saveUserAnswers: function( q, r, s, u, C, F ) {<br />
+			var J = y(arguments, F);<br />
+			A(false, &quot;saveUserAnswers&quot;, {<br />
+				surveyID: q,<br />
+				userID: r,<br />
+				questionsAndAnswers: s,<br />
+				finalize: u<br />
+			}, J, true, true).send([C, F])<br />
+		},<br />
+		finalizeUserSurvey: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			A(false, &quot;finalizeUserSurvey&quot;, {<br />
+				surveyID: q,<br />
+				userID: r<br />
+			}, C, true, true).send([s, u])<br />
+		},<br />
+		submitPlaylistForCampaign: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			(new c(&quot;submitPlaylistForCampaign&quot;, {<br />
+				playlistID: q,<br />
+				campaignID: r<br />
+			}, C, false)).send([s, u])<br />
+		},<br />
+		submitSongVoteForCampaign: function( q, r, s, u ) {<br />
+			var C = y(arguments, u);<br />
+			(new c(&quot;submitSongVoteForCampaign&quot;, {<br />
+				songID: q,<br />
+				campaignID: r<br />
+			}, C, false)).send([s, u])<br />
+		},<br />
+		getPlaylistsForCampaign: function( q, r, s ) {<br />
+			var u = y(arguments, s);<br />
+			(new c(&quot;getPlaylistsForCampaign&quot;, {<br />
+				campaignID: q<br />
+			}, u, false)).send([r, s])<br />
+		},<br />
+		giveFreePlusForPinningIE9: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			(new c(&quot;giveFreePlusForPinningIE9&quot;, {}, s, false)).send([q, r])<br />
+		},<br />
+		getTunipopID: function( q, r, s, u ) {<br />
+			var C = y(arguments, u),<br />
+				F = {};<br />
+			if ( r ) F.brand = q;<br />
+			else F.artist = q;<br />
+			C = A(true, &quot;getTunipopID&quot;, F, C, null, true);<br />
+			C.type = &quot;tunipop&quot;;<br />
+			C.send([s, u])<br />
+		},<br />
+		getSubscriptionHistory: function( q, r ) {<br />
+			var s = y(arguments, r);<br />
+			A(true, &quot;getSubscriptionHistory&quot;, {}, s, true, true).send([q, r])<br />
+		}<br />
+	})<br />
+})();<br />
+[/js] </p>

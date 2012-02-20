@@ -1,0 +1,116 @@
+---
+layout: post
+title: ! '[javascriptMVC] jquery/event/drag與SlickGrid衝突問題'
+categories: []
+tags:
+- javascriptMVC
+- jQuery
+published: true
+comments: true
+---
+<p>SlickGrid內部需要用到jquery.event.drag</p>
+
+<p>[js]<br />
+// make sure required JavaScript modules are loaded<br />
+if (typeof jQuery === &quot;undefined&quot;) {<br />
+    throw &quot;SlickGrid requires jquery module to be loaded&quot;;<br />
+}
+if (!jQuery.fn.drag) {<br />
+    throw &quot;SlickGrid requires jquery.event.drag module to be loaded&quot;;<br />
+}
+if (typeof Slick === &quot;undefined&quot;) {<br />
+    throw &quot;slick.core.js not loaded&quot;;<br />
+}
+[/js]</p>
+
+<p>此處的jquery.event.drag是來自http://code.google.com/p/threedubmedia/的實做。<br />
+注意drag並不是瀏覽器會有的原生事件，所以會有一些不同的lib去實做這一塊。<br />
+以上本來沒有什麼問題，<br />
+但是跟javascriptMVC的另一個drag實做：<a href="https://raw.github.com/alivedise/jquerymx/master/event/drag/drag.js">jquery/event/drag</a>並用時就會產生問題。<br />
+原因就是上面所說得實做方式有異，兩者使用上也大不相同，<br />
+只是同樣掛上drag這個名字。</p>
+
+<p>基於維持javascriptMVC本身的完整性的理由，決定更改jquery.event.drag這個lib。<br />
+過程中學到了$.event.special的客制事件製作方式，基本樣板如下：<br />
+[js]<br />
+$.event.special.UPTOYOU = {<br />
+    setup: function() {<br />
+        var elem = this;<br />
+    },<br />
+    teardown: fuction() {<br />
+        var elem = this;<br />
+    }<br />
+};<br />
+[/js]<br />
+範例稍候再寫。</p>
+
+<p>回到jQuery.event.drag的實做，最簡單的避免命名碰撞的方式為，把drag改名為_drag，<br />
+另外接這個事件的人也要配合更改。<br />
+所以實際上SlickGrid跟jQuery.event.drag都要更動。<br />
+SlickGrid內部用到drag的地方<br />
+[js]<br />
+ 262             $canvas<br />
+ 263                 .bind(&quot;keydown.slickgrid&quot;, handleKeyDown)<br />
+ 264                 .bind(&quot;click.slickgrid&quot;, handleClick)<br />
+ 265                 .bind(&quot;dblclick.slickgrid&quot;, handleDblClick)<br />
+ 266                 .bind(&quot;contextmenu.slickgrid&quot;, handleContextMenu)<br />
+ 267                 .bind(&quot;_draginit&quot;, handleDragInit)                                                                                                                      <br />
+ 268                 .bind(&quot;_dragstart&quot;, handleDragStart)<br />
+ 269                 .bind(&quot;_drag&quot;, handleDrag)<br />
+ 270                 .bind(&quot;_dragend&quot;, handleDragEnd);<br />
+[/js]<br />
+[js]<br />
+ 536                 $(&quot;&lt;div class='slick-resizable-handle' /&gt;&quot;)<br />
+ 537                     .appendTo(e)<br />
+ 538                     .bind(&quot;_dragstart&quot;, function(e,dd) {                            <br />
+[/js]<br />
+[js]<br />
+ 588                     .bind(&quot;_drag&quot;, function(e,dd) { <br />
+ 589                         var actualMinWidth, d = Math.min(maxPageX, Math.max(minPageX, e.pageX)) - pageX, x, ci;<br />
+[/js]<br />
+[js]<br />
+ 662                     .bind(&quot;xdragend&quot;, function(e,dd) {<br />
+ 663                         var newWidth;<br />
+ 664                         $(this).parent().removeClass(&quot;slick-header-column-active&quot;);<br />
+[/js]<br />
+[js]<br />
+ 776             $canvas.unbind(&quot;_draginit _dragstart _dragend _drag&quot;);                                                                                                      <br />
+ 777             $container.empty().removeClass(uid);<br />
+[/js]<br />
+到目前為止只是簡單的代換，比較困難的是在jquery.event.drag內部要更動drag這個名字。<br />
+最後找到最小修改的方式：<br />
+[js]<br />
+ 13 $.fn._drag = function( str, arg, opts ){<br />
+ 14     // figure out the event type<br />
+ 15     var type = typeof str == &quot;string&quot; ? str : &quot;&quot;,<br />
+ 16     // figure out the event handler...<br />
+ 17     fn = $.isFunction( str ) ? str : $.isFunction( arg ) ? arg : null;<br />
+ 18     // fix the event type<br />
+ 19     if ( type.indexOf(&quot;drag&quot;) !== 0 )<br />
+ 20         type = &quot;drag&quot;+ type;<br />
+ 21     // were options passed<br />
+ 22     opts = ( str == fn ? arg : opts ) || {};<br />
+ 23     // trigger or bind event handler<br />
+ 24     return fn ? this.bind( type, opts, fn ) : this.trigger( type );<br />
+ 25 };<br />
+ 26 <br />
+ 27 // local refs (increase compression)<br />
+ 28 var $event = $.event,<br />
+ 29 $special = $event.special,<br />
+ 30 // configure the drag special event <br />
+ 31 drag = $special._drag = {    <br />
+[/js]<br />
+[js]<br />
+279                 event.type = event.type.replace('drag', '_drag');<br />
+//在丟給event handler之前把type偷天換日<br />
+280                 result = subject ? $event.handle.call( subject, event, callback ) : null;<br />
+[/js]<br />
+[js]<br />
+388 $special.xdraginit = $special.xdragstart = $special.xdragend = drag;<br />
+[/js]</p>
+
+<p>github修改過得slick.grid.js
+<a href="https://github.com/alivedise/SlickGrid/blob/master/slick.grid.js">https://github.com/alivedise/SlickGrid/blob/master/slick.grid.js</a></p>
+
+<p>github修改過得jquery.event.drag.js
+<a href="https://github.com/alivedise/jQuery/blob/master/jquery.event.drag.js">https://github.com/alivedise/jQuery/blob/master/jquery.event.drag.js</a></p>

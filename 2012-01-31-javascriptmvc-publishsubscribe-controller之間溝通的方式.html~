@@ -1,0 +1,55 @@
+---
+layout: post
+title: "[javascriptMVC] publish/subscribe - controller之間溝通的方式"
+date: 2012-01-31 11:46
+categories: javascriptmvc
+comments: true
+---
+<p>$.Controller將OpenAjax包進來當做一種controller之間互相溝通的方式。<br />
+現在有兩個controller: controller_a, controller_b，<br />
+controller_a要發一個訊息給controller_b，<br />
+發佈方要使用$.Controller.prototype.publish</p>
+
+``` js
+this.publish('Namespace.Eventname.Nested', option);<br />
+```
+
+<p>接收方使用$.Controller內建的subscribe註冊此事件</p>
+
+``` js
+'Namespace.Eventname.Nested subscribe': function(published_event, option){});<br />
+```
+
+<p>完整範例與jsfiddle如下（要記得偷jquery/controller/subscribe進來）：</p>
+
+``` js
+
+steal('jquery/class', 'jquery/model', 'jquery/dom/fixture', 'jquery/view/ejs','jquery/controller', 'jquery/controller/subscribe', function($) {
+
+// Define Acontroller, pusblish event whenever instance is inited.<br />
+$.Controller(&quot;Acontroller&quot;, {<br />
+&quot;init&quot;: function(element, options) {<br />
+this.publish('Alive.Acontroller.Inited', this);<br />
+}
+});</p>
+
+<p>// Define Bcontroller, listen to Acontroller inited event.<br />
+$.Controller('Bcontroller', {<br />
+// update the todo instance<br />
+&quot;Alive.Acontroller.Inited subscribe&quot;: function(published, option) {<br />
+steal.dev.log(published, option);<br />
+}
+});</p>
+
+<p>// create bcontroller first<br />
+new Bcontroller('#element_b');<br />
+// create acontroller<br />
+new Acontroller('#element_a');<br />
+//steal.js INFO: Alive.Acontroller.Inited &gt;Class</p>
+
+<p>})</p>
+
+```
+
+<p>jsfiddle
+{ % jsfiddle NCeeR % }
