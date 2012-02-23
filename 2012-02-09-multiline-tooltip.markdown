@@ -3,7 +3,11 @@ layout: post
 title: "[HTML] 多行tooltip(title)"
 date: 2012-02-09 11:46
 comments: true
+<<<<<<< HEAD
 categories: HTML5
+=======
+categories: w3c
+>>>>>>> origin/master
 ---
 
 html原生tooltip(title屬性)顯示多行的方法：

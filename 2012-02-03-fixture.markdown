@@ -3,7 +3,11 @@ layout: post
 title: "[jQuery] $.fixture介紹：模擬ajax request callback"
 date: 2012-02-03 11:11
 comments: true
+<<<<<<< HEAD
 categories: jQuery 
+=======
+categories: 
+>>>>>>> origin/master
 ---
 
 $.fixture可以攔截ajax請求並且模擬可能的回應，回應可以從一個檔案(json格式)或某個callback函式。

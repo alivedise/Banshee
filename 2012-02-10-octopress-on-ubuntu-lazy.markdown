@@ -1,9 +1,16 @@
 ---
 layout: post
+<<<<<<< HEAD
 title: "[Octopress] 重來懶人包"
 date: 2012-02-10 15:36
 comments: true
 categories: octopress ubuntu 
+=======
+title: "[octopress] 重來懶人包"
+date: 2012-02-10 15:36
+comments: true
+categories: octopress,ubuntu 
+>>>>>>> origin/master
 ---
 
 在ubuntu上架設octopress環境的懶人包：

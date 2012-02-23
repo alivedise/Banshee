@@ -3,7 +3,11 @@ layout: post
 title: "[jquery] jQuery layout X jQuery UI Tabs的應用"
 date: 2012-02-06 10:05
 comments: true
+<<<<<<< HEAD
 categories: jQuery 
+=======
+categories: 
+>>>>>>> origin/master
 ---
 
 jQuery layout是一套幫助RD排版的工具，

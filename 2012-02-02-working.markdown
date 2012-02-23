@@ -2,7 +2,10 @@
 layout: post
 title: "working notes"
 date: 2012-02-02 16:46
+<<<<<<< HEAD
 published: false
+=======
+>>>>>>> origin/master
 comments: true
 categories: 
 ---

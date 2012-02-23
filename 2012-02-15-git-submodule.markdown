@@ -1,5 +1,6 @@
 ---
 layout: post
+<<<<<<< HEAD
 title: "[git] 心得(1) Submodule, Bitbucket"
 date: 2012-02-15 23:32
 comments: true
@@ -8,6 +9,16 @@ categories: github
 
 # Bitbucker
 偶然間發現這個github的競爭者[Bitbucket](http://bitbucket.com)推出了無限免費私有倉庫+無限硬碟空間，
+=======
+title: "[git] 心得(1) Submodule, Bitbucker"
+date: 2012-02-15 23:32
+comments: true
+categories: git,github 
+---
+
+# Bitbucker
+偶然間發現這個github的競爭者[Bitbucker](http://bitbucker.com)推出了無限免費私有倉庫+無限硬碟空間，
+>>>>>>> origin/master
 於是有了一個想法：把不能說得project放到bitbucker，把好玩的open source放在github，兩者透過submodule互通！
 畢竟工作上要用到大量的open source project，每次更新都要cp實在很累人。
 在大部分專案都在github，而且他的介面也真的很好用的狀況下，在github上開repo還是有必要得！

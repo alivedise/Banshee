@@ -1,9 +1,16 @@
 ---
 layout: post
+<<<<<<< HEAD
 title: "[Octopress] image tag of octopress測試"
 date: 2012-02-07 10:07
 comments: true
 categories: cats octopress 
+=======
+title: "image tag of octopress測試"
+date: 2012-02-07 10:07
+comments: true
+categories: cats 
+>>>>>>> origin/master
 ---
 
 {% img https://p.twimg.com/Ak_HuCoCQAAY7cd.jpg:large %}
