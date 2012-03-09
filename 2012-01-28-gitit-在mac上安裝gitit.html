@@ -1,0 +1,34 @@
+---
+layout: post
+title: ! '[Gitit] 在Mac上安裝gitit'
+categories: []
+tags: []
+published: true
+comments: true
+---
+<p>使用homebrew-&gt;cabal-&gt;gitit這條路</p>
+
+<p><a href="https://github.com/jgm/gitit">g</a><a href="https://github.com/jgm/gitit">i</a><a href="https://github.com/jgm/gitit">tit的github頁面</a>
+晚點來翻譯這個readme</p>
+
+<p>[shell]<br />
+brew update<br />
+brew install cabal-install<br />
+[/shell]</p>
+
+<p>這中間會開始下載ghc－－haskell的直譯器。當然，是darwin版本。<br />
+gitit是用haskell寫的，haskell本身是一套function lauguage，早期開發目的是拿來做數學運算。<br />
+很肥的GHC裝好後(約600M)會遇到cabal-install編譯不過的問題，<br />
+此時再裝haskell-platform</p>
+
+<p>[shell]<br />
+brew install baskell-platform<br />
+[/shell]</p>
+
+<p>之後</p>
+
+<p>[shell]<br />
+cabal update<br />
+cabal install pandoc -fhighlighting --reinstall<br />
+cabal install gitit<br />
+[/shell] </p>

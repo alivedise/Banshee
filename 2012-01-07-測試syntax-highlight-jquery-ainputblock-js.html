@@ -1,0 +1,107 @@
+---
+layout: post
+title: 測試syntax highlight - jQuery.ainputblock.js
+categories: []
+tags: []
+published: true
+comments: true
+---
+<p>測試一下WP的語法高亮！<br />
+很簡單的使用，會自動載入需要的js檔案，<br />
+js語法的話前後加上[js]［js］ code ［/js］/*半形注意*/[/js]即可。</p>
+
+<p>下面是我第一隻在github上發表的general purpose的jQuery Plugin:)
+<a href="https://github.com/alivedise/jQuery/blob/master/jquery.ainputblock.js" title="jQuery.ainputblock.js" target="_blank">git</a></p>
+
+<p>[js]<br />
+/* <br />
+ * Copyright (c) 2011 Ascheriit. All rights reserved.<br />
+ *<br />
+ * Date: 2011-11-30 14:43:37<br />
+ * Author: Alive Kuo (alive.kuo at vivotek.com)<br />
+ *<br />
+ * Changelog<br />
+ *  1.0.2: solve '~' '.' '-' '=' '`' in ff/ie bug<br />
+ *  1.0.1: add chinese options<br />
+ *  1.0.0: Commit to SVN.<br />
+ *<br />
+ */</p>
+
+<p>jQuery.fn.ainputblock =<br />
+function(params)<br />
+{
+	function regInput(obj, reg, inputStr)<br />
+	{<br />
+		return reg.test(inputStr);<br />
+	}</p>
+
+<p>	var options = {<br />
+		version: '1.0.2',<br />
+		alphabet: true,<br />
+		numeric: true,<br />
+		chinese: false,<br />
+		symbols: [],<br />
+		a: [],<br />
+		'.': false<br />
+	}<br />
+	var op = jQuery.extend(options, params);<br />
+	var regString = (op.alphabet ? 'a-zA-Z' : '') + (op.numeric ? '0-9' : '') + (op.chinese ? '\u4E00-\u9FA5' : '');<br />
+	$.each(op.symbols, function(index, key){<br />
+		if (key == '.' || key == '\.') op['.'] = true;<br />
+		op.a.push(key.charCodeAt(0))<br />
+		regString += '\\'+key;<br />
+	});<br />
+    return this.each(function()<br />
+    {<br />
+		$(this).bind(&quot;paste&quot;, function(e)<br />
+		{<br />
+			if($.browser.msie) return regInput(this, new RegExp('^['+regString+']*$'), window.clipboardData.getData('Text'));<br />
+			else //Firefox... hacking dom<br />
+			{<br />
+				var $oldval = $(this).val();<br />
+				$input = $(this);<br />
+				setTimeout(function(){<br />
+					if (! regInput($input,new RegExp('^['+regString+']*$'),  $input.val())) <br />
+						$input.val($oldval);<br />
+				}, 1);<br />
+			}<br />
+		});<br />
+		$(this).bind(&quot;drop&quot;, function(e)<br />
+		{<br />
+			return regInput(this, new RegExp('^['+regString+']*$'), $.browser.msie ? window.event.dataTransfer.getData('text') : e.originalEvent.dataTransfer.getData('text/plain'));<br />
+		});<br />
+		$(this).bind(&quot;keypress&quot;, function(e)<br />
+		{<br />
+            var key = e.charCode || e.keyCode || e.which || 0;<br />
+			if (key == 0) return true;<br />
+			return (<br />
+                key == 8 || //backspace <br />
+                key == 9 || //tab <br />
+                key == 46 || //delete<br />
+				op.a.indexOf(key) &gt;= 0 ||<br />
+				(key == 190 &amp;&amp; op['.']) ||<br />
+                //(key &gt;= 37 &amp;&amp; key &lt;= 40) || //arrows<br />
+				regInput(this, new RegExp('^['+regString+']*$'), String.fromCharCode(key))<br />
+			);<br />
+		});<br />
+/*        $(this).bind(&quot;keydown&quot;, function(e)<br />
+        {<br />
+            var key = e.charCode || e.keyCode || e.which || 0;<br />
+            // allow backspace, tab, delete, arrows, letters, numbers and keypad numbers ONLY<br />
+            return (<br />
+                key == 8 || //backspace <br />
+                key == 9 || //tab <br />
+                key == 46 || //delete<br />
+                key == 16 || //shift<br />
+				op.a.indexOf(key) &gt;= 0 ||<br />
+				(key == 190 &amp;&amp; op['.']) ||<br />
+                (key &gt;= 37 &amp;&amp; key &lt;= 40) || //arrows<br />
+				regInput(this, new RegExp('^['+regString+']*$'), String.fromCharCode(key))<br />
+			);<br />
+		});*/<br />
+	});<br />
+};<br />
+[/js]</p>
+
+<p>心得：很久沒用這功能了，blogger時代光是安裝跟加shCore.js include敘述在blogger後台就讓我失去耐性<br />
+WP一裝就馬上能使用真不錯</p>

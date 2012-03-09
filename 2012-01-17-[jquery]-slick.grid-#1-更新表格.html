@@ -1,0 +1,34 @@
+---
+layout: post
+title: ! '[jQuery] Slick.Grid #1 更新表格'
+categories: []
+tags: []
+published: false
+comments: true
+---
+<p>SlickGrid是一套可以搭配jQuery等lib使用的獨立表格plugin, 有自己的namespace(slick) 也可以搭配jQuery-ui的css theme作客製化, 表格裡面都寫上了ui-widget-content等配合jQuery-ui的class. github上有source code+wiki+stackoverflow的問答連結， 跟jQuery.jqGrid 比起來，SlickGrid較具彈性，但是文件方面SlickGrid比jqGrid來的少的多，中文資料也很少。在這邊將一些使用上的心得作紀錄。
+<ul>
+	<li>SlickGrid的事件綁定：以cell的綁定為主，沒有jqGrid的onSelectRow callback 要有類似效果的話要用[js]<br />
+var grid, data = [],<br />
+columns = [{<br />
+id: &quot;prod&quot;,<br />
+name: &quot;Product&quot;,<br />
+field: &quot;prod&quot;,<br />
+width: 200,<br />
+resizable: false,<br />
+editor: TextCellEditor,<br />
+formatter: ProductCellFormatter}<br />
+],<br />
+options = {<br />
+editable: true,<br />
+enableAddRow: true,<br />
+enableColumnReorder: false<br />
+};</li></ul></p>
+
+<p>grid = new Slick.Grid($(&quot;#grid&quot;), data, columns, options);</p>
+
+<p>grid.onSelectedRowsChanged.subscribe(function() {<br />
+$.log(grid.getSelectedRows());<br />
+});<br />
+[/js]
+</p>
