@@ -3,7 +3,7 @@ layout: post
 title: "[jQuery] SlickGrid API列表"
 date: 2012-02-09 11:03
 comments: true
-categories: jQuery
+categories: jquery slickgrid
 ---
 
 ## Grid options

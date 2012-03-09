@@ -1,6 +1,5 @@
 ---
 layout: post
-<<<<<<< HEAD
 title: "[Octopress] tags測試"
 date: 2012-02-01 11:34
 comments: true

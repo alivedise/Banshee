@@ -3,7 +3,7 @@ layout: post
 title: "[jQuery]UI.layout*SlickGrid - 使SlickGrid在layout改變大小時能自動filter高度"
 date: 2012-02-06 13:42
 comments: true
-categories: jQuery
+categories: jquery
 ---
 
 目前只有一種作法，利用publish/subscribe告訴SlickGrid要去追parent的高度

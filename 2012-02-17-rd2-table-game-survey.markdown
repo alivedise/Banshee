@@ -3,7 +3,7 @@ layout: post
 title: "[Table Game] 桌遊大賽賽前研究"
 date: 2012-02-17 09:33
 comments: true
-categories: table game
+categories: tablegame
 ---
 ## 玩過得項目
 ### 卡卡頌十周年紀念版 (德文版)

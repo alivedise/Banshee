@@ -3,7 +3,7 @@ layout: post
 title: "[javascriptMVC] <翻譯+心得> jmvc導覽(2) - $.Model"
 date: 2012-02-02 11:18
 comments: true
-categories: javascriptMVC
+categories: javascriptmvc
 ---
 
 

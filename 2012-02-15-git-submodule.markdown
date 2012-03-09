@@ -1,6 +1,5 @@
 ---
 layout: post
-<<<<<<< HEAD
 title: "[git] 心得(1) Submodule, Bitbucket"
 date: 2012-02-15 23:32
 comments: true
